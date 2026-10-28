@@ -155,7 +155,7 @@
       setHTML($('news'), '<div class="news-head">NHKニュース</div><div class="news-empty">' + esc(st.newsErr || 'ニュースを取得中') + '</div>');
       return;
     }
-    var rows = n.items.slice(0, 5).map(function (it) {
+    var rows = n.items.slice(0, 6).map(function (it) {
       var t = it.published ? Date.parse(it.published) : NaN;
       var when = isNaN(t) ? '' : (L.ymd(t) === L.ymd(now) ? L.hm(t) : L.md(L.ymd(t)));
       return '<li><span class="nt">' + when + '</span><span class="nh">' + esc(it.title) + '</span></li>';
@@ -163,16 +163,26 @@
     setHTML($('news'), '<div class="news-head">' + esc(n.source || 'ニュース') + '</div><ul class="news-list">' + rows + '</ul>');
     fitNews();
   }
-  function fitNews() {   // 途中で切れる見出しは丸ごと隠す（欄の高さに入る件数だけ表示）
-    var box = $('news'), lis = box.querySelectorAll('li'), bottom = box.getBoundingClientRect().bottom;
-    for (var i = 0; i < lis.length; i++) {
-      lis[i].style.display = '';
-      if (lis[i].getBoundingClientRect().bottom > bottom + 1) {
-        for (var j = i; j < lis.length; j++) lis[j].style.display = 'none';
-        break;
+  function fitNews() {
+    // 欄の高さに入る件数だけ表示。2行表示で3件入らない端末では、1行表示に切り替えて件数を確保する
+    var box = $('news'), list = box.querySelector('.news-list');
+    if (!list) return;
+    function apply() {
+      var lis = list.querySelectorAll('li'), bottom = box.getBoundingClientRect().bottom, shown = 0;
+      for (var i = 0; i < lis.length; i++) lis[i].style.display = '';
+      for (i = 0; i < lis.length; i++) {
+        if (lis[i].getBoundingClientRect().bottom > bottom + 1) {
+          for (var j = i; j < lis.length; j++) lis[j].style.display = 'none';
+          break;
+        }
+        shown++;
       }
+      return shown;
     }
+    setClass(list, 'compact', false);
+    if (apply() < 3) { setClass(list, 'compact', true); apply(); }
   }
+
 
   /* ---------- 状態表示 ---------- */
   function renderStatus(now) {
@@ -313,7 +323,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '天気は30分ごと（Open-Meteo）、ニュースは10分ごと（元データは約30分ごとに更新）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（元データは約30分ごとに更新）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };
@@ -341,6 +351,7 @@
   }
 
   window.addEventListener('resize', function () { if ($('news').querySelector('li')) fitNews(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if ($('news').querySelector('li')) fitNews(); });
   bind();
   if (st.wx && st.wx.place !== st.settings.place) st.wx = null;
   tick();

@@ -246,3 +246,7 @@ button, input, select { font: inherit; color: var(--ink); }
 .status { justify-content: flex-end; }
 .status-text { margin-right: 1.2rem; }
 .status.warn { justify-content: space-between; }
+
+/* 狭い端末向け：見出しを1行に */
+.news-list.compact li { padding: 0.3rem 0; }
+.news-list.compact .nh { -webkit-line-clamp: 1; display: block; white-space: nowrap; text-overflow: ellipsis; }
