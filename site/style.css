@@ -1,0 +1,248 @@
+/* BOOX Daily Desk — 白黒E Ink専用。色・影・アニメーションは使わない */
+:root {
+  --ink: #000;
+  --paper: #fff;
+  --rule: 0.32rem;   /* 太罫 */
+  --hair: 0.14rem;   /* 細罫 */
+}
+html { font-size: calc(100vh / 64); }            /* 横1872×1404 で 1rem ≒ 22px 相当 */
+@media (max-aspect-ratio: 4/3) { html { font-size: calc(100vw / 85.3); } }
+html, body { margin: 0; height: 100%; background: var(--paper); color: var(--ink); }
+body {
+  font-family: "Noto Sans JP", "Noto Sans CJK JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-weight: 700;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
+  font-feature-settings: "palt" 1;
+}
+button, input, select { font: inherit; color: var(--ink); }
+* { box-sizing: border-box; }
+
+.board {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 57fr 43fr;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  padding: 1.2rem 2.2rem 0;
+}
+
+/* 上段 */
+.top {
+  grid-column: 1 / 3;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding-bottom: 0.9rem;
+  border-bottom: var(--rule) solid var(--ink);
+}
+.date { display: flex; align-items: baseline; }
+.date-md { font-size: 5.6rem; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+.date-wd { font-size: 3.2rem; font-weight: 900; line-height: 1; }
+.clock {
+  font-size: 7.6rem; font-weight: 900; line-height: 0.9;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.03em;
+}
+
+/* 中央左：予定 */
+.schedule {
+  min-height: 0; overflow: hidden;
+  padding: 1.4rem 2rem 1.2rem 0;
+  border-right: var(--rule) solid var(--ink);
+  display: flex; flex-direction: column;
+}
+.allday { display: flex; flex-wrap: wrap; margin-bottom: 1rem; }
+.allday:empty { display: none; }
+.chip {
+  border: var(--hair) solid var(--ink); padding: 0.2rem 0.8rem;
+  font-size: 1.8rem; line-height: 1.3; max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chip b { font-weight: 900; margin-right: 0.6rem; }
+.focus { flex: 0 0 auto; }
+.focus-meta { display: flex; align-items: center; flex-wrap: wrap; }
+.tag {
+  display: inline-block; background: var(--ink); color: var(--paper);
+  font-size: 1.9rem; font-weight: 900; line-height: 1; padding: 0.45rem 0.8rem;
+}
+.tag.outline { background: var(--paper); color: var(--ink); border: var(--hair) solid var(--ink); padding: 0.31rem 0.66rem; }
+.focus-time { font-size: 3.4rem; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.focus-until { font-size: 2.2rem; font-weight: 700; }
+.focus-title {
+  margin-top: 0.6rem;
+  font-size: 4.6rem; font-weight: 900; line-height: 1.18;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  word-break: break-all;
+}
+.focus-empty { font-size: 3.2rem; font-weight: 900; line-height: 1.3; }
+.focus-sub { font-size: 2.2rem; margin-top: 0.8rem; line-height: 1.35; }
+.later { margin-top: auto; border-top: var(--hair) solid var(--ink); }
+.later:empty { border-top: 0; }
+.later-row {
+  display: flex; align-items: baseline;
+  padding: 0.7rem 0; border-bottom: var(--hair) solid var(--ink);
+  font-size: 2.5rem; line-height: 1.25;
+}
+.later-row .t { flex: 0 0 auto; font-weight: 900; font-variant-numeric: tabular-nums; }
+.later-row .n { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.later-more { font-size: 1.8rem; padding-top: 0.5rem; }
+.stale-note { font-size: 1.7rem; margin-top: 0.6rem; }
+
+/* 中央右：天気とタスク */
+.side { min-height: 0; overflow: hidden; padding: 1.4rem 0 1.2rem 2rem; display: flex; flex-direction: column; }
+.weather { display: flex; align-items: center; }
+.wx-icon { width: 7.6rem; height: 7.6rem; flex: 0 0 auto; }
+.wx-text { min-width: 0; }
+.wx-label { font-size: 3.2rem; font-weight: 900; line-height: 1.15; }
+.wx-temps { font-size: 2rem; margin-top: 0.4rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wx-temps .hi { font-size: 3.2rem; font-weight: 900; }
+.wx-temps .lo { font-size: 3.2rem; font-weight: 900; }
+.wx-temps .sep { margin: 0 0.5rem; }
+.wx-now { font-size: 1.8rem; margin-top: 0.3rem; }
+.weather-note {
+  margin: 1rem 0 0; padding: 0.8rem 0;
+  border-top: var(--hair) solid var(--ink); border-bottom: var(--hair) solid var(--ink);
+  font-size: 2.3rem; font-weight: 900; line-height: 1.35;
+}
+.weather-note:empty { display: none; }
+
+.sheet button {
+  font-size: 2rem; font-weight: 900; padding: 0.4rem 1rem;
+  border: var(--rule) solid var(--ink); background: var(--paper); border-radius: 0;
+}
+.sheet button.primary { background: var(--ink); color: var(--paper); }
+
+/* 下段：1時間ごと */
+.hourly {
+  grid-column: 1 / 3;
+  display: flex; align-items: stretch;
+  border-top: var(--rule) solid var(--ink);
+}
+.nav {
+  flex: 0 0 5rem; border: 0; background: var(--paper); font-size: 2.6rem; padding: 0;
+}
+.nav:disabled { visibility: hidden; }
+.hours { flex: 1 1 auto; display: grid; grid-template-columns: repeat(8, 1fr); }
+.hcell {
+  text-align: center; padding: 0.7rem 0 0.8rem;
+  border-left: var(--hair) solid var(--ink);
+  display: flex; flex-direction: column; align-items: center;
+}
+.hcell:last-child { border-right: var(--hair) solid var(--ink); }
+.hcell.now { background: var(--ink); color: var(--paper); }
+.hcell .h { font-size: 2rem; font-weight: 900; line-height: 1.1; }
+.hcell .h small { font-size: 1.3rem; margin-left: 0.3rem; }
+.hcell svg { width: 4rem; height: 4rem; }
+.hcell .tp { font-size: 2.6rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.hcell .pp { font-size: 1.8rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.hcell .pp.wet { font-weight: 900; text-decoration: underline; text-decoration-thickness: 0.18rem; }
+
+/* 最下段：状態 */
+.status {
+  grid-column: 1 / 3;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: var(--hair) solid var(--ink);
+  font-size: 1.55rem; font-weight: 500; min-height: 2.9rem;
+}
+.status.warn { background: var(--ink); color: var(--paper); font-weight: 900; padding: 0 0.8rem; margin: 0 -0.8rem; }
+.status-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-btn { border: 0; background: none; color: inherit; font-size: 1.55rem; padding: 0.3rem 0.6rem; text-decoration: underline; }
+
+/* 設定 */
+.sheet { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: var(--paper); z-index: 10; overflow: auto; }
+.sheet[hidden], .flash[hidden] { display: none; }
+.sheet-inner { max-width: 60rem; margin: 0 auto; padding: 2rem; }
+.sheet h2 { font-size: 3rem; font-weight: 900; margin: 0 0 1.4rem; padding-bottom: 0.6rem; border-bottom: var(--rule) solid var(--ink); }
+.sheet .row { display: block; font-size: 2rem; margin-bottom: 1.2rem; }
+.sheet .row input, .sheet .row select {
+  display: block; width: 100%; margin-top: 0.4rem; font-size: 2.2rem; padding: 0.4rem 0.6rem;
+  border: var(--rule) solid var(--ink); border-radius: 0; background: var(--paper);
+}
+.sheet .two { display: flex; }
+.sheet .two label { flex: 1; }
+.sheet .two input { display: block; width: 100%; font-size: 2.2rem; padding: 0.4rem; border: var(--rule) solid var(--ink); }
+.sheet .buttons { display: flex; flex-wrap: wrap; }
+.sheet-note { font-size: 1.6rem; font-weight: 500; line-height: 1.5; }
+
+/* 残像クリア用の全面パネル */
+.flash { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 20; background: var(--ink); }
+.flash.white { background: var(--paper); }
+
+/* 古いAndroid WebViewでも崩れないよう、flexの間隔は余白で指定 */
+.date > * + * { margin-left: 1.4rem; }
+.allday .chip { margin: 0 0.6rem 0.6rem 0; }
+.allday { margin-bottom: 0.4rem; }
+.focus-meta > * { margin-right: 1rem; }
+.later-row .t { margin-right: 1.4rem; }
+.weather > * + * { margin-left: 1.4rem; }
+.hcell > * + * { margin-top: 0.15rem; }
+.sheet .two > * + * { margin-left: 1rem; }
+.sheet .buttons button { margin: 0 1rem 1rem 0; }
+
+/* 予定なし版：中央左を天気、中央右を明日の天気とタスクに */
+.wx-main { justify-content: flex-start; }
+.wx-main .wx-icon { width: 8rem; height: 8rem; }
+.wx-main .wx-label { font-size: 3.6rem; }
+.wx-main .wx-temps { font-size: 2.2rem; margin-top: 0.4rem; }
+.wx-main .wx-temps .hi, .wx-main .wx-temps .lo { font-size: 3.6rem; }
+.wx-main .wx-now { font-size: 2rem; margin-top: 0.3rem; }
+.wx-main .weather > * + * { margin-left: 1.8rem; }
+.wx-main .weather-note { margin-top: 1rem; padding: 0.7rem 0; font-size: 2.3rem; border-bottom: 0; }
+.tomorrow { border-bottom: var(--hair) solid var(--ink); padding-bottom: 0.8rem; }
+.tomorrow .tm-head { font-size: 1.9rem; margin-bottom: 0.3rem; }
+.tomorrow .tm-row { display: flex; align-items: center; }
+.tomorrow .tm-row > * + * { margin-left: 1.4rem; }
+.tomorrow svg { width: 4.4rem; height: 4.4rem; flex: 0 0 auto; }
+.tomorrow .tm-label { font-size: 2.5rem; font-weight: 900; line-height: 1.2; }
+.tomorrow .tm-temps { font-size: 2.4rem; font-variant-numeric: tabular-nums; }
+
+/* 今月のカレンダー */
+.month { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding-top: 0.8rem; }
+.month-head { display: flex; align-items: baseline; margin-bottom: 0.4rem; white-space: nowrap; }
+.month-m { font-size: 2.4rem; font-weight: 900; margin-right: 1.2rem; flex: 0 0 auto; }
+.cal { width: 100%; border-collapse: collapse; table-layout: fixed; flex: 1 1 auto; }
+.cal th { font-size: 1.6rem; font-weight: 500; padding-bottom: 0.3rem; border-bottom: var(--hair) solid var(--ink); }
+.cal th.off { font-weight: 900; }
+.cal td { text-align: center; font-size: 2.1rem; font-weight: 500; font-variant-numeric: tabular-nums; padding: 0; }
+.cal td.off { font-weight: 900; }
+.cal td.hol span { text-decoration: underline; text-decoration-thickness: 0.2rem; text-underline-offset: 0.25rem; }
+.cal td span { display: inline-block; min-width: 3.2rem; line-height: 1.26; }
+.cal td.today span { background: var(--ink); color: var(--paper); font-weight: 900; text-decoration: none; }
+.month-note { font-size: 1.6rem; font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ニュース */
+.news { flex: 1 1 auto; min-height: 0; overflow: hidden; border-top: var(--rule) solid var(--ink); padding-top: 0.6rem; }
+.news-head { font-size: 2rem; font-weight: 900; display: flex; align-items: baseline; justify-content: space-between; }
+.news-src { font-size: 1.5rem; font-weight: 500; }
+.news-list { list-style: none; margin: 0.3rem 0 0; padding: 0; }
+.news-list li { display: flex; align-items: baseline; padding: 0.35rem 0; border-bottom: var(--hair) solid var(--ink); }
+.news-list li:last-child { border-bottom: 0; }
+.news-list .nt { flex: 0 0 4.6rem; font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.news-list .nh { flex: 1 1 auto; min-width: 0; font-size: 1.95rem; font-weight: 700; line-height: 1.28;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; word-break: break-all; }
+.news-empty { font-size: 1.8rem; font-weight: 500; margin-top: 0.4rem; }
+
+/* ===== 整理版：罫線を減らし、余白で区切る ===== */
+.board { grid-template-columns: 60fr 40fr; }
+.wx-main .weather { align-items: center; }
+.wx-main .wx-icon { width: 8.4rem; height: 8.4rem; }
+.wx-main .wx-text { display: flex; align-items: baseline; flex-wrap: wrap; }
+.wx-main .wx-label { font-size: 4.4rem; font-weight: 900; margin-right: 2.4rem; }
+.wx-main .wx-temps { font-size: 2rem; margin-top: 0; white-space: nowrap; }
+.wx-main .wx-temps .lab { font-weight: 700; margin-right: 0.3rem; }
+.wx-main .wx-temps .hi, .wx-main .wx-temps .lo { font-size: 4.4rem; font-weight: 900; margin-right: 1.6rem; }
+.wx-main .weather-note { margin: 0.8rem 0 0; padding: 0; border: 0; font-size: 2.6rem; }
+.news { border-top: var(--hair) solid var(--ink); margin-top: 1.6rem; padding-top: 1rem; }
+.news-head { font-size: 1.7rem; font-weight: 700; display: block; }
+.news-list { margin-top: 0.4rem; }
+.news-list li { border-bottom: 0; padding: 0.45rem 0; }
+.news-list .nt { flex: 0 0 4.8rem; font-weight: 500; }
+.news-list .nh { font-size: 2.1rem; }
+.month { padding-top: 0.2rem; justify-content: center; }
+.month-head { margin-bottom: 0.8rem; }
+.month-m { font-size: 3rem; }
+.month-note { font-size: 1.7rem; font-weight: 500; }
+.cal th { font-size: 1.7rem; padding-bottom: 0.5rem; }
+.cal td { font-size: 2.5rem; }
+.cal td span { line-height: 1.5; min-width: 3.8rem; }
+.status { justify-content: flex-end; }
+.status-text { margin-right: 1.2rem; }
+.status.warn { justify-content: space-between; }
