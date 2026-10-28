@@ -323,7 +323,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（元データは約30分ごとに更新）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '版 20261028.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（元データは約30分ごとに更新）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };
