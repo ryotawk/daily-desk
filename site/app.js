@@ -152,14 +152,14 @@
   function renderNews(now) {
     var n = st.news;
     if (!n || !n.items || !n.items.length) {
-      setHTML($('news'), '<div class="news-head">NHKニュース</div><div class="news-empty">' + esc(st.newsErr || 'ニュースを取得中') + '</div>');
+      setHTML($('news'), '<div class="news-head">Hacker News</div><div class="news-empty">' + esc(st.newsErr || 'ニュースを取得中') + '</div>');
       return;
     }
     var rows = n.items.slice(0, 6).map(function (it) {
       var t = it.published ? Date.parse(it.published) : NaN;
       var when = isNaN(t) ? '' : (L.ymd(t) === L.ymd(now) ? L.hm(t) : L.md(L.ymd(t)));
       var h = esc(it.title);
-      if (it.link && /^https?:\/\//.test(it.link)) h = '<a href="' + esc(it.link) + '" rel="noopener">' + h + '</a>';   // 各記事（NHK）へのリンク
+      if (it.link && /^https?:\/\//.test(it.link)) h = '<a href="' + esc(it.link) + '" rel="noopener">' + h + '</a>';   // 各記事へのリンク
       return '<li><span class="nt">' + when + '</span><span class="nh">' + h + '</span></li>';
     }).join('');
     setHTML($('news'), '<div class="news-head">' + esc(n.source || 'ニュース') + '</div><ul class="news-list">' + rows + '</ul>');
@@ -269,32 +269,26 @@
       .then(function () { st.wxBusy = false; renderAll(); });
   }
 
-  /* ニュースはブラウザからNHKのRSSを直接読む。取れなければ同じサイト内の news.json（予備）を読む */
-  var NEWS_FEEDS = [   // 上から順に試す
-    'https://www.nhk.or.jp/rss/news/cat0.xml',
-    'https://www3.nhk.or.jp/rss/news/cat0.xml'
-  ];
+  /* ニュースはブラウザからHacker News APIを直接読む。取れなければ同じサイト内の news.json（予備）を読む */
+  var HN = 'https://hacker-news.firebaseio.com/v0/';
   var NEWS_MAX = 6;
-  function parseRss(xmlText) {
-    var doc = new DOMParser().parseFromString(xmlText, 'application/xml');
-    if (doc.getElementsByTagName('parsererror').length) throw new Error('RSSの形式が不正');
-    var nodes = doc.getElementsByTagName('item'), items = [];
-    for (var i = 0; i < nodes.length && items.length < NEWS_MAX; i++) {
-      var tEl = nodes[i].getElementsByTagName('title')[0], pEl = nodes[i].getElementsByTagName('pubDate')[0], lEl = nodes[i].getElementsByTagName('link')[0];
-      var title = tEl ? tEl.textContent.trim() : '';
-      if (!title) continue;
-      var ms = pEl ? Date.parse(pEl.textContent.trim()) : NaN;
-      items.push({ title: title, published: isNaN(ms) ? null : new Date(ms).toISOString(), link: lEl ? lEl.textContent.trim() : null });
-    }
-    return items;
-  }
-  function fetchRss(i) {
-    if (i >= NEWS_FEEDS.length) return Promise.reject(new Error('NHKのRSSを取得できません'));
-    return getText(NEWS_FEEDS[i], 20000).then(function (t) {
-      var items = parseRss(t);
+  function fetchHN() {
+    return getText(HN + 'topstories.json', 20000).then(function (t) {
+      var ids = JSON.parse(t);
+      if (!Array.isArray(ids) || !ids.length) throw new Error('Hacker Newsの記事一覧が空です');
+      return Promise.all(ids.slice(0, NEWS_MAX).map(function (id) {
+        return getText(HN + 'item/' + id + '.json', 20000).then(function (x) {
+          var d = JSON.parse(x);
+          if (!d || !d.title) return null;
+          return { title: d.title, published: d.time ? new Date(d.time * 1000).toISOString() : null,
+                   link: d.url || 'https://news.ycombinator.com/item?id=' + id, score: d.score, by: d.by };
+        }).catch(function () { return null; });   // 1件失敗しても他を表示する
+      }));
+    }).then(function (items) {
+      items = items.filter(Boolean);
       if (!items.length) throw new Error('見出し0件');
-      return { ok: true, source: 'NHKニュース', fetchedAt: new Date().toISOString(), items: items };
-    }).catch(function () { return fetchRss(i + 1); });
+      return { ok: true, source: 'Hacker News', fetchedAt: new Date().toISOString(), items: items };
+    });
   }
   function fetchNewsJson() {
     return getText('news.json?_=' + Date.now(), 30000).then(function (t) {
@@ -305,7 +299,7 @@
   }
   function fetchNews() {
     st.newsTry = Date.now();
-    fetchRss(0).catch(function () { return fetchNewsJson(); }).then(function (d) {
+    fetchHN().catch(function () { return fetchNewsJson(); }).then(function (d) {
       st.news = d; save('news', d); st.newsErr = null;
     }, function (e) { st.newsErr = netMsg(e); }).then(renderAll);
   }
@@ -362,7 +356,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '版 20261126.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（NHKのRSSを直接取得。取れないときは予備の news.json）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '版 20261126.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得。取れないときは予備の news.json）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };
