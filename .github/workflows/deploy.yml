@@ -1,10 +1,8 @@
-name: ニュース取得とページ公開
+name: ページ公開
 
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "11,41 * * * *"   # 30分ごと（GitHubの都合で10〜30分遅れることがあります）
   workflow_dispatch:
 
 permissions:
@@ -23,15 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: ニュースを取得
-        run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            python3 scripts/fetch_news.py site/news.json
-          else
-            python3 scripts/fetch_news.py site/news.json --allow-empty
-          fi
-
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -46,22 +35,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-  # 公開リポジトリは60日間更新がないと定期実行が自動停止するため、30日ごとに空コミットを入れる
-  keepalive:
-    needs: deploy
-    if: github.event_name == 'schedule'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: 月1回の生存コミット
-        run: |
-          last=$(git log -1 --format=%ct)
-          if [ $(( $(date +%s) - last )) -gt 2592000 ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit --allow-empty -m "keepalive"
-            git push
-          fi

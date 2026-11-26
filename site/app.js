@@ -269,7 +269,7 @@
       .then(function () { st.wxBusy = false; renderAll(); });
   }
 
-  /* ニュースはブラウザからHacker News APIを直接読む。取れなければ同じサイト内の news.json（予備）を読む */
+  /* ニュースはブラウザからHacker News APIを直接読む */
   var HN = 'https://hacker-news.firebaseio.com/v0/';
   var NEWS_MAX = 6;
   function fetchHN() {
@@ -290,16 +290,9 @@
       return { ok: true, source: 'Hacker News', fetchedAt: new Date().toISOString(), items: items };
     });
   }
-  function fetchNewsJson() {
-    return getText('news.json?_=' + Date.now(), 30000).then(function (t) {
-      var d = JSON.parse(t);
-      if (d.ok && d.items && d.items.length) return d;
-      throw new Error('ニュースの元データが空です');
-    });
-  }
   function fetchNews() {
     st.newsTry = Date.now();
-    fetchHN().catch(function () { return fetchNewsJson(); }).then(function (d) {
+    fetchHN().then(function (d) {
       st.news = d; save('news', d); st.newsErr = null;
     }, function (e) { st.newsErr = netMsg(e); }).then(renderAll);
   }
@@ -356,7 +349,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '版 20261126.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得。取れないときは予備の news.json）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '版 20261126.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };
