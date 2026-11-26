@@ -3,7 +3,7 @@
   'use strict';
   var L = window.BoardLogic;
   var WX_MS = 30 * 60000;
-  var WX_STALE = 75 * 60000, NAV_RESET = 5 * 60000;
+  var WX_STALE = 75 * 60000, NEWS_STALE = 35 * 60000, NAV_RESET = 5 * 60000;
   var PLACES = [
     { id: 'tokyo', name: '東京', lat: 35.6812, lon: 139.7671 },
     { id: 'yokohama', name: '横浜', lat: 35.4437, lon: 139.6380 },
@@ -149,13 +149,14 @@
   }
 
   /* ---------- ニュース ---------- */
+  var NEWS_SHOW = 4;   // 画面に出す件数（取得は6件のまま、新しい順の上位を出す）
   function renderNews(now) {
     var n = st.news;
     if (!n || !n.items || !n.items.length) {
       setHTML($('news'), '<div class="news-head">Hacker News</div><div class="news-empty">' + esc(st.newsErr || 'ニュースを取得中') + '</div>');
       return;
     }
-    var rows = L.sortNewest(n.items).slice(0, 6).map(function (it) {
+    var rows = L.sortNewest(n.items).slice(0, NEWS_SHOW).map(function (it) {
       var t = it.published ? Date.parse(it.published) : NaN;
       var when = isNaN(t) ? '' : (L.ymd(t) === L.ymd(now) ? L.hm(t) : L.md(L.ymd(t)));
       var h = esc(it.title);
@@ -187,11 +188,6 @@
 
 
   /* ---------- 状態表示 ---------- */
-  function newsTime(n, fallback) {   // 古さはニュースの時刻（最新の見出しの発行時刻）で測る
-    var latest = NaN;
-    (n.items || []).forEach(function (it) { var t = Date.parse(it.published); if (!isNaN(t) && !(t <= latest)) latest = t; });
-    return isNaN(latest) ? fallback : latest;
-  }
   function renderStatus(now) {
     var parts = [], warn = false;
     if (st.wx) {
@@ -201,7 +197,7 @@
     } else { parts.push('天気 未取得'); warn = true; }
     if (st.wxErr) parts.push('天気の取得失敗：' + st.wxErr);
     if (st.news && st.news.fetchedAt) {
-      var nAt = Date.parse(st.news.fetchedAt), nOld = now - newsTime(st.news, nAt) > 3 * L.HOUR;
+      var nAt = Date.parse(st.news.fetchedAt), nOld = now - nAt > NEWS_STALE;   // 記事の時刻ではなく、最後に取得できた時刻で測る
       parts.push('ニュース ' + L.hm(nAt) + ' 取得' + (nOld ? '（古いデータ）' : ''));
       if (nOld) warn = true;
     } else parts.push('ニュース 未取得');
@@ -351,7 +347,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '版 20261126.2。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '版 20261126.3。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };
