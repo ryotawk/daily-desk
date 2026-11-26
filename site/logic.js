@@ -180,12 +180,21 @@
     return { date: best, name: holidays[best], days: Math.round((dayStart(best) - dayStart(today)) / DAY) };
   }
 
+  /* ニュースを発行時刻の新しい順に並べる（時刻がないものは最後。同時刻は元の順を保つ） */
+  function sortNewest(items) {
+    return (items || []).map(function (it, i) {
+      var t = it && it.published ? Date.parse(it.published) : NaN;
+      return { it: it, i: i, t: isNaN(t) ? -Infinity : t };
+    }).sort(function (a, b) { return a.t === b.t ? a.i - b.i : (a.t > b.t ? -1 : 1); })
+      .map(function (x) { return x.it; });
+  }
+
   function cleanKey(k) { return String(k || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
 
   var api = { pad: pad, parts: parts, ymd: ymd, hm: hm, md: md, weekday: weekday, dayStart: dayStart,
     addDays: addDays, hourFloor: hourFloor, normalize: normalize, planSchedule: planSchedule,
     timeLabel: timeLabel, rangeLabel: rangeLabel, minutesText: minutesText, weatherInfo: weatherInfo,
-    rainComment: rainComment, hourWindow: hourWindow, cleanKey: cleanKey, monthGrid: monthGrid, NO_RAIN: NO_RAIN, nextHoliday: nextHoliday, HOUR: HOUR, DAY: DAY };
+    rainComment: rainComment, hourWindow: hourWindow, cleanKey: cleanKey, sortNewest: sortNewest, monthGrid: monthGrid, NO_RAIN: NO_RAIN, nextHoliday: nextHoliday, HOUR: HOUR, DAY: DAY };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BoardLogic = api;
 })(this);
