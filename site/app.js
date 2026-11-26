@@ -155,7 +155,7 @@
       setHTML($('news'), '<div class="news-head">Hacker News</div><div class="news-empty">' + esc(st.newsErr || 'ニュースを取得中') + '</div>');
       return;
     }
-    var rows = n.items.slice(0, 6).map(function (it) {
+    var rows = L.sortNewest(n.items).slice(0, 6).map(function (it) {
       var t = it.published ? Date.parse(it.published) : NaN;
       var when = isNaN(t) ? '' : (L.ymd(t) === L.ymd(now) ? L.hm(t) : L.md(L.ymd(t)));
       var h = esc(it.title);
