@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # 月1回の生存コミット用
+  contents: read
   pages: write
   id-token: write
 
@@ -17,11 +17,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # 成果物を上げるジョブと公開するジョブを分ける。
+  # 同じジョブの中だと、上げた直後は成果物がGitHub側でまだ見えず、deploy-pagesが落ちることがあった。
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,15 +33,30 @@ jobs:
           fi
 
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
 
-      # 公開リポジトリは60日間更新がないと定期実行が自動停止するため、30日ごとに空コミットを入れる
+  # 公開リポジトリは60日間更新がないと定期実行が自動停止するため、30日ごとに空コミットを入れる
+  keepalive:
+    needs: deploy
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
       - name: 月1回の生存コミット
-        if: github.event_name == 'schedule'
         run: |
           last=$(git log -1 --format=%ct)
           if [ $(( $(date +%s) - last )) -gt 2592000 ]; then
