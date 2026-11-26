@@ -166,7 +166,7 @@
     fitNews();
   }
   function fitNews() {
-    // 欄の高さに入る件数だけ表示。2行表示で3件入らない端末では、1行表示に切り替えて件数を確保する
+    // 欄の高さに入る件数だけ表示。2行表示で全件入らなければ、1行表示に切り替えて件数を確保する
     var box = $('news'), list = box.querySelector('.news-list');
     if (!list) return;
     function apply() {
@@ -182,7 +182,7 @@
       return shown;
     }
     setClass(list, 'compact', false);
-    if (apply() < 3) { setClass(list, 'compact', true); apply(); }
+    if (apply() < list.querySelectorAll('li').length) { setClass(list, 'compact', true); apply(); }
   }
 
 
@@ -210,9 +210,11 @@
     if (!navigator.onLine) { parts.unshift('オフライン'); warn = true; }
     var errs = st.wxErr || st.newsErr || !navigator.onLine;
     var text = (warn || errs) ? '⚠ ' + parts.join('　／　') : (st.wx ? L.hm(st.wx.at) + ' 更新' : '');
-    setHTML($('status-text'), esc(text));
+    setHTML($('s-status'), esc(text));          // 詳細は設定画面に出す
     warn = warn || !!errs;
-    setClass($('status'), 'warn', warn);
+    var g = $('open-settings');                  // 古い・失敗のときだけ、設定の印を「⚠」にして知らせる
+    setHTML(g, warn ? '⚠' : '≡');
+    setClass(g, 'warn', warn);
   }
 
   function renderAll() {
@@ -349,7 +351,7 @@
       var s = st.settings;
       sel.value = s.place; $('s-lat').value = s.lat; $('s-lon').value = s.lon; $('s-ghost').value = String(s.ghost);
       sel.onchange();
-      $('s-info').textContent = '版 20261126.1。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
+      $('s-info').textContent = '版 20261126.2。表示サイズ ' + window.innerWidth + '×' + window.innerHeight + '（倍率' + (window.devicePixelRatio || 1) + '）。天気は30分ごと（Open-Meteo）、ニュースは10分ごと（Hacker News APIを直接取得）、祝日は1日1回（holidays-jp）取得します。設定はこの端末内に保存されます。';
       $('settings').hidden = false;
     };
     $('s-cancel').onclick = function () { $('settings').hidden = true; };

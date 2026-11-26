@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20261126.1">
+<link rel="stylesheet" href="style.css?v=20261126.2">
 </head>
 <body>
 <main class="board">
@@ -34,11 +34,8 @@
     <button type="button" id="next" class="nav" aria-label="4時間先へ">▶</button>
   </section>
 
-  <footer id="status" class="status">
-    <span id="status-text" class="status-text"></span>
-    <button type="button" id="open-settings" class="status-btn">設定</button>
-  </footer>
 </main>
+<button type="button" id="open-settings" class="gear" aria-label="設定">≡</button>
 
 <div id="settings" class="sheet" hidden>
   <div class="sheet-inner">
@@ -65,12 +62,13 @@
       <button type="button" id="s-save" class="primary">保存して閉じる</button>
       <button type="button" id="s-cancel">閉じる</button>
     </div>
+    <p class="sheet-note" id="s-status"></p>
     <p class="sheet-note" id="s-info"></p>
   </div>
 </div>
 <div id="flash" class="flash" hidden></div>
 
 <script src="logic.js"></script>
-<script src="app.js?v=20261126.1"></script>
+<script src="app.js?v=20261126.2"></script>
 </body>
 </html>
